@@ -1,0 +1,728 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Калькулятор импорта авто - Локальная версия</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        .card {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            margin-bottom: 20px;
+        }
+
+        .api-key-section {
+            background: #fff9e6;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            border-left: 4px solid #ffc107;
+        }
+
+        .api-key-section h3 {
+            color: #856404;
+            margin-bottom: 15px;
+            font-size: 1.2em;
+        }
+
+        .api-key-section p {
+            color: #856404;
+            margin-bottom: 10px;
+            line-height: 1.6;
+        }
+
+        .api-key-section a {
+            color: #667eea;
+            font-weight: 600;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            margin-bottom: 20px;
+        }
+
+        label {
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #333;
+            font-size: 0.95em;
+        }
+
+        input[type="text"],
+        input[type="password"],
+        textarea {
+            padding: 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 1em;
+            font-family: inherit;
+            transition: all 0.3s;
+        }
+
+        textarea {
+            resize: vertical;
+            line-height: 1.6;
+        }
+
+        input:focus,
+        textarea:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            border-radius: 10px;
+            font-size: 1.1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            width: 100%;
+        }
+
+        .button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.4);
+        }
+
+        .button:active {
+            transform: translateY(0);
+        }
+
+        .button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .button-secondary {
+            background: #6c757d;
+            margin-top: 10px;
+        }
+
+        .info-box {
+            background: #e3f2fd;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            border-left: 4px solid #2196f3;
+        }
+
+        .info-box p {
+            color: #1565c0;
+            font-size: 0.95em;
+            line-height: 1.6;
+            margin-bottom: 10px;
+        }
+
+        .info-box strong {
+            color: #0d47a1;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            display: none;
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .results {
+            display: none;
+        }
+
+        .result-card {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 20px;
+            border-left: 5px solid #667eea;
+        }
+
+        .result-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: start;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .car-title {
+            flex: 1;
+            min-width: 250px;
+        }
+
+        .car-title h3 {
+            color: #333;
+            font-size: 1.4em;
+            margin-bottom: 5px;
+        }
+
+        .car-subtitle {
+            color: #666;
+            font-size: 0.95em;
+        }
+
+        .price-box {
+            background: white;
+            padding: 15px 25px;
+            border-radius: 10px;
+            text-align: right;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
+        .price-label {
+            font-size: 0.85em;
+            color: #666;
+            margin-bottom: 5px;
+        }
+
+        .final-price {
+            font-size: 1.8em;
+            font-weight: 700;
+            color: #667eea;
+        }
+
+        .breakdown {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .breakdown-item {
+            background: white;
+            padding: 15px;
+            border-radius: 10px;
+        }
+
+        .breakdown-label {
+            font-size: 0.85em;
+            color: #666;
+            margin-bottom: 5px;
+        }
+
+        .breakdown-value {
+            font-size: 1.2em;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .car-link {
+            display: inline-block;
+            margin-top: 15px;
+            color: #667eea;
+            text-decoration: none;
+            font-weight: 600;
+            transition: color 0.3s;
+        }
+
+        .car-link:hover {
+            color: #764ba2;
+        }
+
+        .error-message {
+            background: #fee;
+            color: #c33;
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 20px;
+            border-left: 4px solid #c33;
+            display: none;
+        }
+
+        .success-message {
+            background: #e8f5e9;
+            color: #2e7d32;
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 10px;
+            border-left: 4px solid #4caf50;
+            display: none;
+        }
+
+        .examples {
+            background: #f5f5f5;
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 20px;
+        }
+
+        .examples h3 {
+            margin-bottom: 15px;
+            color: #333;
+        }
+
+        .example-item {
+            background: white;
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+            border: 2px solid transparent;
+        }
+
+        .example-item:hover {
+            border-color: #667eea;
+            transform: translateX(5px);
+        }
+
+        .example-item strong {
+            color: #667eea;
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 1.8em;
+            }
+            
+            .result-header {
+                flex-direction: column;
+            }
+            
+            .price-box {
+                width: 100%;
+                text-align: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🚗 Калькулятор импорта авто</h1>
+            <p>Локальная версия - работает прямо на вашем компьютере</p>
+        </div>
+
+        <div class="card">
+            <div class="api-key-section">
+                <h3>⚙️ Первоначальная настройка (один раз)</h3>
+                <p>
+                    Для работы нужен <strong>Anthropic API ключ</strong>.<br>
+                    Получить бесплатно: <a href="https://console.anthropic.com" target="_blank">console.anthropic.com</a>
+                </p>
+                <p style="font-size: 0.9em; margin-top: 10px;">
+                    💡 После регистрации: Settings → API Keys → Create Key<br>
+                    💰 Пополните баланс минимум на $10 (Settings → Billing)
+                </p>
+                
+                <div class="form-group" style="margin-top: 15px;">
+                    <label for="apiKey">Anthropic API Key:</label>
+                    <input 
+                        type="password" 
+                        id="apiKey" 
+                        placeholder="sk-ant-api03-..."
+                    >
+                    <button class="button button-secondary" onclick="saveApiKey()">
+                        💾 Сохранить ключ
+                    </button>
+                    <div class="success-message" id="successMessage">
+                        ✅ API ключ сохранен! Теперь можете искать автомобили.
+                    </div>
+                </div>
+            </div>
+
+            <div class="info-box">
+                <p>💡 <strong>Как работает:</strong></p>
+                <p>1. Введите свой API ключ один раз (сохранится в браузере)</p>
+                <p>2. Опишите что ищет клиент</p>
+                <p>3. Приложение найдет авто на mobile.de и autoscout24.de</p>
+                <p>4. Получите готовый расчет с ценами</p>
+            </div>
+
+            <form id="searchForm">
+                <div class="form-group">
+                    <label for="clientRequest">Описание от клиента:</label>
+                    <textarea 
+                        id="clientRequest" 
+                        rows="5" 
+                        placeholder="Например: BMW X5 2021 года, пробег до 60000 км, бюджет до 3 млн рублей"
+                        required
+                    >BMW X5 2021 года, пробег до 60000 км, бюджет до 3 млн рублей</textarea>
+                </div>
+                <button type="submit" class="button" id="searchBtn">
+                    🔍 Найти автомобили
+                </button>
+            </form>
+
+            <div class="examples">
+                <h3>Примеры запросов (кликните чтобы использовать):</h3>
+                <div class="example-item" onclick="fillExample('BMW X5 2021 года, пробег до 60000 км, бюджет до 3 млн рублей')">
+                    <strong>BMW X5</strong>
+                    2021 года, до 60 тыс км, бюджет до 3 млн ₽
+                </div>
+                <div class="example-item" onclick="fillExample('Mercedes E-класс 2020-2022, дизель, черный, автомат, до 2.5 млн')">
+                    <strong>Mercedes E-класс</strong>
+                    2020-2022, дизель, черный, до 2.5 млн ₽
+                </div>
+                <div class="example-item" onclick="fillExample('Toyota RAV4 или VW T-Cross 2021. До 160 лс. Белый цвет, автомат, парктроник. Пробег до 100 тыс. В пределах 2х млн')">
+                    <strong>Toyota RAV4 / VW T-Cross</strong>
+                    2021, до 160 л.с., белый, до 100 тыс км, до 2 млн ₽
+                </div>
+            </div>
+
+            <div class="error-message" id="errorMessage"></div>
+        </div>
+
+        <div class="loading" id="loading">
+            <div class="spinner"></div>
+            <p style="color: white; font-size: 1.2em; font-weight: 600;">Ищем автомобили в Германии...</p>
+            <p style="color: white; opacity: 0.8; margin-top: 10px;">Это может занять 30-60 секунд</p>
+        </div>
+
+        <div class="results" id="results"></div>
+    </div>
+
+    <script>
+        const EUR_TO_RUB = 91.56;
+        const BASE_UTIL_FEE = 20000;
+        const DELIVERY_COST_EUR = 1200;
+
+        // Загрузка сохраненного API ключа при запуске
+        window.addEventListener('load', () => {
+            const savedKey = localStorage.getItem('anthropic_api_key');
+            if (savedKey) {
+                document.getElementById('apiKey').value = savedKey;
+                document.getElementById('successMessage').style.display = 'block';
+            }
+        });
+
+        function saveApiKey() {
+            const apiKey = document.getElementById('apiKey').value.trim();
+            
+            if (!apiKey) {
+                alert('Пожалуйста, введите API ключ');
+                return;
+            }
+
+            if (!apiKey.startsWith('sk-ant-')) {
+                alert('API ключ должен начинаться с sk-ant-');
+                return;
+            }
+
+            localStorage.setItem('anthropic_api_key', apiKey);
+            document.getElementById('successMessage').style.display = 'block';
+            
+            setTimeout(() => {
+                document.getElementById('successMessage').style.display = 'none';
+            }, 3000);
+        }
+
+        function fillExample(text) {
+            document.getElementById('clientRequest').value = text;
+            document.getElementById('clientRequest').focus();
+        }
+
+        document.getElementById('searchForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const apiKey = localStorage.getItem('anthropic_api_key');
+            if (!apiKey) {
+                alert('Сначала введите и сохраните API ключ!');
+                document.getElementById('apiKey').focus();
+                return;
+            }
+
+            const clientRequest = document.getElementById('clientRequest').value;
+
+            document.getElementById('loading').style.display = 'block';
+            document.getElementById('results').style.display = 'none';
+            document.getElementById('errorMessage').style.display = 'none';
+            document.getElementById('searchBtn').disabled = true;
+
+            try {
+                const cars = await searchCarsWithClaude(apiKey, clientRequest);
+                
+                if (cars.length === 0) {
+                    throw new Error('Автомобили не найдены. Попробуйте изменить параметры поиска.');
+                }
+
+                displayResults(cars);
+
+            } catch (error) {
+                console.error('Error:', error);
+                document.getElementById('errorMessage').textContent = error.message;
+                document.getElementById('errorMessage').style.display = 'block';
+            } finally {
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('searchBtn').disabled = false;
+            }
+        });
+
+        async function searchCarsWithClaude(apiKey, clientRequest) {
+            const prompt = `You are a car import specialist.
+
+CLIENT REQUEST: "${clientRequest}"
+
+Search mobile.de and autoscout24.de for matching cars.
+Convert ruble budgets to EUR (rate: 91.56 RUB/EUR).
+
+Return ONLY valid JSON array (no markdown, no explanations):
+[
+  {
+    "title": "Toyota RAV4 2.5 Hybrid AWD",
+    "year": 2021,
+    "price": 28900,
+    "mileage": 42000,
+    "engineVolume": 2.5,
+    "enginePower": 218,
+    "url": "https://www.mobile.de/..."
+  }
+]`;
+
+            const response = await fetch('https://api.anthropic.com/v1/messages', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'x-api-key': apiKey,
+                    'anthropic-version': '2023-06-01'
+                },
+                body: JSON.stringify({
+                    model: 'claude-sonnet-4-20250514',
+                    max_tokens: 4000,
+                    tools: [{
+                        type: 'web_search_20250305',
+                        name: 'web_search'
+                    }],
+                    messages: [{
+                        role: 'user',
+                        content: prompt
+                    }]
+                })
+            });
+
+            if (!response.ok) {
+                const error = await response.json();
+                throw new Error(error.error?.message || 'Ошибка API. Проверьте ключ и баланс.');
+            }
+
+            const data = await response.json();
+            
+            // Извлекаем текст
+            let fullText = '';
+            for (const block of data.content) {
+                if (block.type === 'text') {
+                    fullText += block.text;
+                }
+            }
+
+            // Парсим JSON
+            const cleanText = fullText.replace(/```json/g, '').replace(/```/g, '').trim();
+            const jsonMatch = cleanText.match(/\[\s*\{[\s\S]*\}\s*\]/);
+            
+            if (!jsonMatch) {
+                throw new Error('Не удалось получить результаты. Попробуйте еще раз.');
+            }
+
+            const cars = JSON.parse(jsonMatch[0]);
+            
+            // Рассчитываем стоимость для каждого авто
+            return cars.map(car => ({
+                ...car,
+                ...calculateImportCost(car.price, car.year, car.engineVolume, car.enginePower)
+            }));
+        }
+
+        function calculateImportCost(priceEur, year, engineVolume, enginePower) {
+            const currentYear = 2026;
+            const age = currentYear - year;
+            
+            let customsDutyRate, customsDutyPerCC;
+            
+            if (age < 3) {
+                if (priceEur < 8500) {
+                    customsDutyRate = 0.54;
+                    customsDutyPerCC = 2.5;
+                } else if (priceEur < 16700) {
+                    customsDutyRate = 0.48;
+                    customsDutyPerCC = 3.5;
+                } else if (priceEur < 42300) {
+                    customsDutyRate = 0.48;
+                    customsDutyPerCC = 5.5;
+                } else if (priceEur < 84500) {
+                    customsDutyRate = 0.48;
+                    customsDutyPerCC = 7.5;
+                } else {
+                    customsDutyRate = 0.48;
+                    customsDutyPerCC = 15;
+                }
+            } else if (age >= 3 && age < 5) {
+                customsDutyRate = 0.54;
+                if (engineVolume < 1.5) {
+                    customsDutyPerCC = 7;
+                } else if (engineVolume < 2.3) {
+                    customsDutyPerCC = 11;
+                } else {
+                    customsDutyPerCC = 13;
+                }
+            } else {
+                customsDutyRate = 0;
+                customsDutyPerCC = engineVolume < 1.5 ? 1.7 : 2.5;
+            }
+            
+            const engineVolumeCC = engineVolume * 1000;
+            const dutyByPercent = priceEur * customsDutyRate;
+            const dutyByCC = customsDutyPerCC * engineVolumeCC;
+            const customsDutyEur = Math.max(dutyByPercent, dutyByCC);
+            
+            let utilCoefficient;
+            if (enginePower <= 160 && age < 3) {
+                utilCoefficient = 0.17;
+            } else {
+                if (engineVolume < 1.5) {
+                    utilCoefficient = 35;
+                } else if (engineVolume < 2.0) {
+                    utilCoefficient = 50;
+                } else if (engineVolume < 2.5) {
+                    utilCoefficient = 65;
+                } else if (engineVolume < 3.0) {
+                    utilCoefficient = 75;
+                } else {
+                    utilCoefficient = 90;
+                }
+                
+                if (enginePower > 200) {
+                    utilCoefficient *= 1.3;
+                } else if (enginePower > 150) {
+                    utilCoefficient *= 1.1;
+                }
+            }
+            
+            const utilizationFeeRub = BASE_UTIL_FEE * utilCoefficient;
+            
+            const customsServiceFeeRub = priceEur < 200000 ? 775 :
+                                        priceEur < 450000 ? 1550 :
+                                        priceEur < 1200000 ? 3100 : 8530;
+            
+            const priceRub = priceEur * EUR_TO_RUB;
+            const customsDutyRub = customsDutyEur * EUR_TO_RUB;
+            const deliveryRub = DELIVERY_COST_EUR * EUR_TO_RUB;
+            
+            const totalCostRub = priceRub + customsDutyRub + utilizationFeeRub + customsServiceFeeRub + deliveryRub;
+            
+            return {
+                price_rub: Math.round(priceRub),
+                customs_duty_rub: Math.round(customsDutyRub),
+                utilization_fee_rub: Math.round(utilizationFeeRub),
+                customs_service_fee_rub: Math.round(customsServiceFeeRub),
+                delivery_rub: Math.round(deliveryRub),
+                total_cost_rub: Math.round(totalCostRub)
+            };
+        }
+
+        function displayResults(cars) {
+            const resultsDiv = document.getElementById('results');
+            resultsDiv.innerHTML = '';
+
+            cars.forEach((car, index) => {
+                const cardHTML = `
+                    <div class="card result-card">
+                        <div class="result-header">
+                            <div class="car-title">
+                                <h3>#${index + 1}. ${car.title}</h3>
+                                <p class="car-subtitle">
+                                    ${car.year} год • ${car.mileage.toLocaleString('ru-RU')} км • 
+                                    ${car.engineVolume}L • ${car.enginePower} л.с.
+                                </p>
+                            </div>
+                            <div class="price-box">
+                                <div class="price-label">Итоговая цена в РФ</div>
+                                <div class="final-price">${car.total_cost_rub.toLocaleString('ru-RU')} ₽</div>
+                            </div>
+                        </div>
+                        
+                        <div class="breakdown">
+                            <div class="breakdown-item">
+                                <div class="breakdown-label">Цена в Германии</div>
+                                <div class="breakdown-value">${car.price_rub.toLocaleString('ru-RU')} ₽</div>
+                                <div style="font-size: 0.8em; color: #999; margin-top: 5px;">${car.price.toLocaleString('ru-RU')} EUR</div>
+                            </div>
+                            <div class="breakdown-item">
+                                <div class="breakdown-label">Таможенная пошлина</div>
+                                <div class="breakdown-value">${car.customs_duty_rub.toLocaleString('ru-RU')} ₽</div>
+                            </div>
+                            <div class="breakdown-item">
+                                <div class="breakdown-label">Утилизационный сбор</div>
+                                <div class="breakdown-value">${car.utilization_fee_rub.toLocaleString('ru-RU')} ₽</div>
+                            </div>
+                            <div class="breakdown-item">
+                                <div class="breakdown-label">Таможенный сбор</div>
+                                <div class="breakdown-value">${car.customs_service_fee_rub.toLocaleString('ru-RU')} ₽</div>
+                            </div>
+                            <div class="breakdown-item">
+                                <div class="breakdown-label">Доставка</div>
+                                <div class="breakdown-value">${car.delivery_rub.toLocaleString('ru-RU')} ₽</div>
+                            </div>
+                        </div>
+                        
+                        <a href="${car.url}" target="_blank" class="car-link">🔗 Смотреть объявление →</a>
+                    </div>
+                `;
+                resultsDiv.innerHTML += cardHTML;
+            });
+
+            resultsDiv.style.display = 'block';
+            resultsDiv.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
+    </script>
+</body>
+</html>
